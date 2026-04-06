@@ -453,3 +453,25 @@
   transition: all 0.15s;
 }
 .suggestion-chip:hover { background: var(--bg-hover); border-color: var(--accent); color: var(--text-primary); }
+
+/* ── First-run setup banner ── */
+.setup-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: var(--accent-dim, #cc785c20);
+  border: 1px solid var(--accent, #cc785c);
+  border-radius: 10px;
+  padding: 14px 16px;
+  max-width: 480px;
+  margin-bottom: 8px;
+  text-align: left;
+}
+.setup-banner-icon { font-size: 22px; line-height: 1; flex-shrink: 0; }
+.setup-banner-text { font-size: 12px; color: var(--text-secondary); line-height: 1.6; }
+.setup-banner-text strong { color: var(--text-primary); }
+.btn-link-inline {
+  background: none; border: none; padding: 0;
+  color: var(--accent); text-decoration: underline;
+  cursor: pointer; font-size: inherit; font-family: inherit;
+}

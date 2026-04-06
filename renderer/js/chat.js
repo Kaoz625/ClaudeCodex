@@ -32,6 +32,9 @@ export class ChatManager {
     this.renderConversationsList();
     this.showEmptyState();
 
+    // Sidebar search — wire once here, not inside renderConversationsList
+    document.getElementById('sidebar-search').addEventListener('input', () => this.renderConversationsList());
+
     // configure marked
     marked.setOptions({
       highlight: (code, lang) => {
@@ -109,15 +112,28 @@ export class ChatManager {
 
   // ── Rendering ── //
   showEmptyState() {
+    const hasAccount = this.usageManager?.getActiveAccount();
+    const setupBanner = !hasAccount ? `
+      <div class="setup-banner">
+        <div class="setup-banner-icon">🔑</div>
+        <div class="setup-banner-text">
+          <strong>Add an API key to get started</strong><br>
+          <span>Go to the <button class="btn-link-inline" id="btn-goto-usage">Usage tab</button> and click <em>+ Add Account</em> to add your Anthropic, OpenAI, OpenRouter, or GitHub Models key.</span>
+        </div>
+      </div>` : '';
     this.messagesEl.innerHTML = `
       <div class="chat-empty">
+        ${setupBanner}
         <div class="chat-empty-logo">C</div>
-        <h2>Claude Desktop</h2>
-        <p>Your AI assistant with MCP connectors, skills, and tools. What would you like to build today?</p>
+        <h2>ClaudeCodex</h2>
+        <p>Your AI desktop — chat, code, research, notebooks, and more.</p>
         <div class="suggestion-chips">
           ${SUGGESTIONS.map(s => `<button class="suggestion-chip">${s}</button>`).join('')}
         </div>
       </div>`;
+    this.messagesEl.querySelector('#btn-goto-usage')?.addEventListener('click', () => {
+      document.querySelector('[data-tab="usage"]')?.click();
+    });
     this.messagesEl.querySelectorAll('.suggestion-chip').forEach(chip => {
       chip.addEventListener('click', () => {
         this.inputEl.value = chip.textContent;
@@ -323,7 +339,11 @@ export class ChatManager {
       this.removeThinkingIndicator();
       this.isStreaming = false;
       this.sendBtn.disabled = false;
-      this.renderMessage('assistant', `**Error:** Could not connect to claude CLI.\n\nMake sure \`claude\` is installed and in your PATH.\n\n\`\`\`\n${err.error || err.message || JSON.stringify(err)}\n\`\`\``);
+      const hasAccount = this.usageManager?.getActiveAccount();
+      const hint = hasAccount
+        ? `Provider: **${hasAccount.provider}** · Model: **${hasAccount.model}**`
+        : `**Tip:** Go to the **Usage tab** and add an API key (Anthropic, OpenAI, OpenRouter, or GitHub Models) — or make sure \`claude\` CLI is installed and authenticated.`;
+      this.renderMessage('assistant', `**Error:** ${err.error || err.message || JSON.stringify(err)}\n\n${hint}`);
     }
   }
 
@@ -462,7 +482,6 @@ export class ChatManager {
       });
     }
 
-    document.getElementById('sidebar-search').addEventListener('input', () => this.renderConversationsList());
   }
 
   deleteConversation(id) {
