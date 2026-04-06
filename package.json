@@ -1,0 +1,27 @@
+{
+  "name": "claudecodex",
+  "version": "1.0.0",
+  "description": "ClaudeCodex — AI-powered desktop IDE with Chat, Code, Research, and multi-provider support",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder"
+  },
+  "dependencies": {
+    "marked": "^9.1.6",
+    "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1"
+  },
+  "build": {
+    "appId": "com.claudecodex.app",
+    "productName": "ClaudeCodex",
+    "directories": { "output": "dist" },
+    "files": ["main.js", "preload.js", "renderer/**/*"],
+    "mac":   { "category": "public.app-category.developer-tools" },
+    "win":   { "target": "nsis" },
+    "linux": { "target": "AppImage" }
+  }
+}

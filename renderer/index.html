@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ClaudeCodex</title>
+  <link rel="stylesheet" href="styles/main.css" />
+  <link rel="stylesheet" href="styles/sidebar.css" />
+  <link rel="stylesheet" href="styles/chat.css" />
+  <link rel="stylesheet" href="styles/ide.css" />
+  <link rel="stylesheet" href="styles/highlight-menu.css" />
+  <link rel="stylesheet" href="styles/agents.css" />
+  <link rel="stylesheet" href="styles/journeykits.css" />
+  <link rel="stylesheet" href="css/notebook.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+</head>
+<body>
+
+<!-- Title bar -->
+<div id="titlebar">
+  <div id="titlebar-drag">
+    <div id="titlebar-logo">
+      <svg width="18" height="18" viewBox="0 0 32 32" fill="none">
+        <rect width="32" height="32" rx="8" fill="#cc785c"/>
+        <path d="M9 23 L16 9 L23 23" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <line x1="11.5" y1="18" x2="20.5" y2="18" stroke="white" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <span>ClaudeCodex</span>
+    </div>
+    <div id="titlebar-account-badge" title="Active account">
+      <div id="account-dot"></div>
+      <span id="account-label">No account</span>
+      <span id="account-provider-badge"></span>
+    </div>
+  </div>
+  <div id="titlebar-controls">
+    <button class="tb-btn" id="btn-minimize">&#8722;</button>
+    <button class="tb-btn" id="btn-maximize">&#9633;</button>
+    <button class="tb-btn" id="btn-close">&#215;</button>
+  </div>
+</div>
+
+<!-- App -->
+<div id="app">
+
+  <!-- Sidebar -->
+  <aside id="sidebar">
+    <div id="sidebar-top">
+      <button id="btn-new-chat" class="btn-primary">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        New Chat
+      </button>
+    </div>
+    <div id="sidebar-search-wrap">
+      <input id="sidebar-search" type="text" placeholder="Search conversations…" />
+    </div>
+    <div id="conversations-list"></div>
+    <div id="sidebar-bottom">
+      <button id="btn-open-folder" class="sidebar-action">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/></svg>
+        Open Folder
+      </button>
+      <div id="cwd-display" title="Working directory">~</div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main id="center">
+    <div id="tab-bar">
+      <button class="tab active" data-tab="chat">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        Chat
+      </button>
+      <button class="tab" data-tab="ide">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        IDE
+      </button>
+      <button class="tab" data-tab="research">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Research
+      </button>
+      <button class="tab" data-tab="hermes">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        Hermes
+      </button>
+      <button class="tab" data-tab="agents">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/><circle cx="19" cy="8" r="2.5"/><circle cx="5" cy="8" r="2.5"/></svg>
+        Agents
+      </button>
+      <button class="tab" data-tab="n8n">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="5" height="5" rx="1"/><rect x="17" y="7" width="5" height="5" rx="1"/><rect x="9" y="12" width="6" height="5" rx="1"/><line x1="7" y1="9.5" x2="9" y2="14"/><line x1="17" y1="9.5" x2="15" y2="14"/></svg>
+        n8n
+      </button>
+      <button class="tab" data-tab="kits">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        Kits
+      </button>
+      <button class="tab" data-tab="usage">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Usage
+      </button>
+      <button class="tab" data-tab="notebooks">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        Notebooks
+      </button>
+    </div>
+
+    <!-- CHAT TAB -->
+    <div id="tab-chat" class="tab-content active">
+      <div id="chat-messages"></div>
+
+      <!-- Follow-up panel -->
+      <div id="followup-panel" class="hidden">
+        <div id="followup-header">
+          <span>Follow-up Notes</span>
+          <button class="icon-btn" id="btn-close-followup">✕</button>
+        </div>
+        <div id="followup-list"></div>
+        <div id="followup-actions">
+          <button class="btn-ghost" id="btn-ask-followups">Ask all as context</button>
+          <button class="btn-ghost" id="btn-clear-followups">Clear</button>
+        </div>
+      </div>
+
+      <div id="chat-input-area">
+        <div id="input-row">
+          <div id="input-wrap">
+            <textarea id="chat-input" placeholder="Message ClaudeCodex… (Shift+Enter for new line)" rows="1"></textarea>
+            <div id="input-actions">
+              <button id="btn-attach" title="Attach file" class="icon-btn">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+              </button>
+              <button id="btn-research-context" title="Add research as context" class="icon-btn">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              </button>
+              <button id="btn-send" class="btn-send" title="Send (Enter)">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div id="input-footer">
+          <span id="model-badge">claude-opus-4</span>
+          <span id="token-counter">0 tokens</span>
+          <button id="btn-toggle-followup" class="btn-ghost-sm" title="Show follow-up notes">
+            📌 Follow-ups (<span id="followup-count">0</span>)
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- IDE TAB -->
+    <div id="tab-ide" class="tab-content">
+      <div id="ide-layout">
+        <div id="file-tree-panel">
+          <div id="file-tree-header">
+            <span>Explorer</span>
+            <div class="file-tree-actions">
+              <button class="icon-btn" id="btn-new-file" title="New File">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+              </button>
+              <button class="icon-btn" id="btn-refresh-tree" title="Refresh">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+              </button>
+            </div>
+          </div>
+          <div id="file-tree"></div>
+        </div>
+        <div id="editor-preview-split">
+          <div id="editor-panel">
+            <div id="editor-tabs-bar"></div>
+            <div id="monaco-editor"></div>
+          </div>
+          <div id="preview-panel">
+            <div id="preview-toolbar">
+              <span id="preview-title">Preview</span>
+              <div class="preview-actions">
+                <button class="icon-btn" id="btn-preview-refresh" title="Refresh">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+                </button>
+                <button class="icon-btn" id="btn-preview-popout" title="Open in browser">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                </button>
+              </div>
+            </div>
+            <webview id="preview-webview" src="about:blank" nodeintegration="false"></webview>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESEARCH TAB -->
+    <div id="tab-research" class="tab-content">
+      <div id="research-layout">
+        <div id="research-sidebar">
+          <h3>Research Sessions</h3>
+          <button id="btn-new-research" class="btn-primary" style="width:100%;justify-content:center;margin-bottom:10px">+ New Research</button>
+          <div id="research-sessions-list"></div>
+        </div>
+        <div id="research-main">
+          <div id="research-url-bar">
+            <div id="research-url-wrap">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input id="research-url-input" type="text" placeholder="Enter URL, GitHub repo, or topic to research deeply…" />
+              <button id="btn-research-go" class="btn-primary" style="border-radius:6px;padding:5px 14px">Dive</button>
+            </div>
+          </div>
+          <div id="research-content">
+            <div id="research-empty-state">
+              <div class="research-empty-icon">🔬</div>
+              <h3>Deep Research</h3>
+              <p>Enter a URL, GitHub repo link, or topic above to start a deep research session.<br>ClaudeCodex will fetch, analyze, and let you chat about the content.</p>
+              <div class="research-suggestions">
+                <button class="suggestion-chip" data-url="https://deepwiki.com/">DeepWiki</button>
+                <button class="suggestion-chip" data-url="github.com">GitHub Repo</button>
+                <button class="suggestion-chip" data-url="topic">Custom Topic</button>
+              </div>
+            </div>
+            <div id="research-doc-view" class="hidden">
+              <div id="research-doc-header">
+                <div id="research-doc-title"></div>
+                <div id="research-doc-meta"></div>
+              </div>
+              <div id="research-doc-body"></div>
+            </div>
+          </div>
+          <div id="research-chat-area" class="hidden">
+            <div id="research-messages"></div>
+            <div id="research-input-row">
+              <textarea id="research-input" placeholder="Ask about this content…" rows="1"></textarea>
+              <button id="btn-research-send" class="btn-send">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HERMES TAB -->
+    <div id="tab-hermes" class="tab-content">
+      <div id="n8n-layout">
+        <div id="n8n-toolbar">
+          <div id="n8n-status-wrap" style="min-width:220px">
+            <div id="hermes-status-dot" class="n8n-status-dot checking"></div>
+            <span id="hermes-status-text">Connecting…</span>
+          </div>
+          <div id="n8n-url-wrap">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+            <input id="hermes-url-input" type="text" placeholder="http://localhost:8787" />
+            <button id="btn-hermes-connect" class="btn-primary" style="padding:4px 12px;font-size:11px">Connect</button>
+          </div>
+          <div id="n8n-toolbar-actions">
+            <button id="btn-hermes-refresh" class="icon-btn" title="Refresh">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+            </button>
+            <button id="btn-hermes-open-browser" class="icon-btn" title="Open Hermes in browser">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div id="hermes-start-instructions" class="hidden">
+          <div class="omc-info-box">
+            <strong>Hermes Agent is not running.</strong> Start it with:
+            <div class="n8n-start-cmds">
+              <div><code>./start.sh</code> <span>— From hermes-webui directory</span></div>
+              <div><code>docker run -p 8787:8787 ghcr.io/nesquena/hermes-webui:latest</code> <span>— Docker</span></div>
+            </div>
+            <p>Clone first: <code>git clone https://github.com/nesquena/hermes-webui</code> then <code>cd hermes-webui &amp;&amp; ./start.sh</code></p>
+          </div>
+        </div>
+
+        <div id="n8n-inner-tabs" style="margin:0">
+          <button class="n8n-inner-tab hermes-inner-tab active" data-panel="app">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+            App
+          </button>
+          <button class="n8n-inner-tab hermes-inner-tab" data-panel="agents">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            My Agents
+          </button>
+          <button class="n8n-inner-tab hermes-inner-tab" data-panel="chat">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+            Chat
+          </button>
+          <button class="n8n-inner-tab hermes-inner-tab" data-panel="settings">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+            Settings
+          </button>
+        </div>
+
+        <div id="hermes-panel-app" class="n8n-panel hermes-panel active">
+          <webview id="hermes-webview" src="about:blank" nodeintegration="false"></webview>
+        </div>
+
+        <div id="hermes-panel-agents" class="n8n-panel hermes-panel">
+          <div style="display:flex;height:100%;overflow:hidden">
+            <div style="width:220px;background:var(--bg-surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:12px;gap:8px;flex-shrink:0">
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text-muted);letter-spacing:.5px">Sessions</div>
+              <button id="btn-hermes-new-session" class="btn-primary" style="justify-content:center;font-size:11px">+ New Session</button>
+              <div id="hermes-sessions-list" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:4px"></div>
+            </div>
+            <div style="flex:1;overflow-y:auto;padding:16px 20px">
+              <div id="hermes-agents-grid" style="display:flex;flex-direction:column;gap:10px"></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="hermes-panel-chat" class="n8n-panel hermes-panel">
+          <div style="display:flex;flex-direction:column;height:100%;overflow:hidden">
+            <div style="padding:8px 16px;background:var(--bg-surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+              <span style="font-size:12px;color:var(--text-secondary)" id="hermes-chat-session-label">Select a session from My Agents</span>
+              <button id="btn-hermes-import-context" class="btn-ghost" style="font-size:11px">→ Send to main chat</button>
+            </div>
+            <div id="hermes-messages" style="flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:8px"></div>
+            <div style="padding:10px 14px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:flex-end;background:var(--bg-surface)">
+              <textarea id="hermes-chat-input" placeholder="Chat with Hermes Agent…" rows="1" style="flex:1;background:var(--bg-raised);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text-primary);font-size:12px;resize:none;outline:none;font-family:inherit;max-height:100px;overflow-y:auto"></textarea>
+              <button id="btn-hermes-chat-send" class="btn-send">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div id="hermes-panel-settings" class="n8n-panel hermes-panel">
+          <div class="n8n-settings-wrap">
+            <h3>Hermes Agent Settings</h3>
+            <p class="usage-subtitle">Configure your local Hermes Agent connection.</p>
+            <label>Password <span style="color:var(--text-muted);font-weight:400">(if HERMES_WEBUI_PASSWORD is set)</span></label>
+            <input type="password" id="hermes-password" placeholder="leave blank if no password" />
+            <label>Default Workspace Path</label>
+            <input type="text" id="hermes-workspace" placeholder="~/workspace" />
+            <div style="margin-top:16px">
+              <button id="btn-hermes-save-settings" class="btn-primary">Save Settings</button>
+            </div>
+            <div style="margin-top:20px;padding:14px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md)">
+              <div style="font-size:11px;font-weight:700;color:var(--text-secondary);margin-bottom:8px">ENVIRONMENT VARIABLES</div>
+              <div style="font-size:11px;color:var(--text-muted);line-height:1.8;font-family:var(--font-mono)">
+                HERMES_WEBUI_PORT=8787<br>
+                HERMES_WEBUI_HOST=127.0.0.1<br>
+                HERMES_WEBUI_DEFAULT_WORKSPACE=~/workspace<br>
+                HERMES_WEBUI_STATE_DIR=~/.hermes/webui-mvp
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AGENTS TAB -->
+    <div id="tab-agents" class="tab-content">
+      <div id="agents-layout">
+        <div id="agents-header">
+          <div>
+            <h2>Agent Monitor</h2>
+            <p class="usage-subtitle">oh-my-claudecode · 19 agents · 36 skills</p>
+          </div>
+          <div id="agents-header-actions">
+            <button id="btn-agents-start-omc" class="btn-ghost">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+              Start oh-my-claudecode
+            </button>
+            <button id="btn-agents-refresh" class="btn-ghost">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+              Refresh
+            </button>
+          </div>
+        </div>
+
+        <!-- How to start panel -->
+        <div id="agents-omc-info" class="hidden">
+          <div class="omc-info-box">
+            <strong>How to activate oh-my-claudecode:</strong>
+            <ol>
+              <li>In any Claude Code session, run: <code>/plugin marketplace add oh-my-claudecode</code></li>
+              <li>Then run: <code>/oh-my-claudecode:omc-setup</code></li>
+              <li>Start a task: <code>/oh-my-claudecode:start "your task description"</code></li>
+            </ol>
+            <p>Agents will appear as active here once they begin working.</p>
+          </div>
+        </div>
+
+        <!-- Stats bar -->
+        <div id="agents-stats"></div>
+
+        <!-- Filter chips -->
+        <div id="agents-filters">
+          <button class="agent-filter-chip active" data-filter="all">All</button>
+          <button class="agent-filter-chip" data-filter="working">
+            <span class="filter-dot working"></span> Active
+          </button>
+          <button class="agent-filter-chip" data-filter="idle">
+            <span class="filter-dot idle"></span> Idle
+          </button>
+        </div>
+
+        <!-- Agent grid -->
+        <div id="agents-grid"></div>
+
+        <!-- Activity log -->
+        <div id="agents-log-section">
+          <div class="section-title-row">
+            <h3 class="section-title">Activity Log</h3>
+            <button id="btn-agents-clear-log" class="btn-ghost">Clear</button>
+          </div>
+          <div id="agents-activity-log"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- N8N TAB -->
+    <div id="tab-n8n" class="tab-content">
+      <div id="n8n-layout">
+        <!-- n8n toolbar -->
+        <div id="n8n-toolbar">
+          <div id="n8n-status-wrap">
+            <div id="n8n-status-dot" class="n8n-status-dot checking"></div>
+            <span id="n8n-status-text">Checking…</span>
+          </div>
+          <div id="n8n-url-wrap">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+            <input id="n8n-url-input" type="text" placeholder="http://localhost:5678" />
+            <button id="btn-n8n-connect" class="btn-primary" style="padding:4px 12px;font-size:11px">Connect</button>
+          </div>
+          <div id="n8n-toolbar-actions">
+            <button id="btn-n8n-refresh" class="icon-btn" title="Refresh">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+            </button>
+            <button id="btn-n8n-open-browser" class="icon-btn" title="Open in browser">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Start instructions (shown when not connected) -->
+        <div id="n8n-start-instructions" class="hidden">
+          <div class="omc-info-box">
+            <strong>n8n is not running.</strong> Start it with one of these commands:
+            <div class="n8n-start-cmds">
+              <div><code>npx n8n</code> <span>— Quick start (no install)</span></div>
+              <div><code>npm install -g n8n &amp;&amp; n8n</code> <span>— Install globally</span></div>
+              <div><code>docker run -p 5678:5678 n8nio/n8n</code> <span>— Docker</span></div>
+            </div>
+            <p>Then come back and click <strong>Connect</strong>. n8n runs at <code>localhost:5678</code> by default.</p>
+          </div>
+        </div>
+
+        <!-- Inner tabs -->
+        <div id="n8n-inner-tabs">
+          <button class="n8n-inner-tab active" data-panel="embed">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+            App
+          </button>
+          <button class="n8n-inner-tab" data-panel="workflows">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="5" height="5" rx="1"/><rect x="17" y="7" width="5" height="5" rx="1"/><rect x="9" y="12" width="6" height="5" rx="1"/><line x1="7" y1="9.5" x2="9" y2="14"/><line x1="17" y1="9.5" x2="15" y2="14"/></svg>
+            Workflows
+          </button>
+          <button class="n8n-inner-tab" data-panel="executions">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Executions
+          </button>
+          <button class="n8n-inner-tab" data-panel="settings">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+            Settings
+          </button>
+        </div>
+
+        <!-- App embed panel -->
+        <div id="n8n-panel-embed" class="n8n-panel active">
+          <webview id="n8n-webview" src="about:blank" nodeintegration="false"></webview>
+        </div>
+
+        <!-- Workflows panel -->
+        <div id="n8n-panel-workflows" class="n8n-panel">
+          <div id="n8n-workflows-list" class="n8n-list-wrap"></div>
+        </div>
+
+        <!-- Executions panel -->
+        <div id="n8n-panel-executions" class="n8n-panel">
+          <div id="n8n-executions-list" class="n8n-list-wrap"></div>
+        </div>
+
+        <!-- Settings panel -->
+        <div id="n8n-panel-settings" class="n8n-panel">
+          <div class="n8n-settings-wrap">
+            <h3>n8n API Settings</h3>
+            <p class="usage-subtitle">Provide an API key to access workflow and execution data via the n8n REST API.</p>
+            <label>API Key <span style="color:var(--text-muted);font-weight:400">(Settings → n8n API in n8n)</span></label>
+            <div style="display:flex;gap:8px;margin-top:6px">
+              <input type="password" id="n8n-api-key" placeholder="your-n8n-api-key" style="flex:1" />
+              <button id="btn-n8n-save-key" class="btn-primary">Save</button>
+            </div>
+            <p style="font-size:11px;color:var(--text-muted);margin-top:12px">
+              The API key is stored locally in your browser storage and never sent anywhere except your local n8n instance.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- KITS TAB -->
+    <div id="tab-kits" class="tab-content">
+      <div id="kits-tab-layout">
+        <!-- Left: JourneyKits browser -->
+        <div id="journeykits-root"></div>
+        <!-- Right: Skills Registry (source badges, overlaps, comparison) -->
+        <div id="skills-registry-panel">
+          <div id="skills-overview-root"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- USAGE TAB -->
+    <div id="tab-usage" class="tab-content">
+      <div id="usage-layout">
+        <div id="usage-header">
+          <div>
+            <h2>Usage &amp; Accounts</h2>
+            <p class="usage-subtitle">Token usage, rate limits, costs, and account management</p>
+          </div>
+          <button id="btn-add-account" class="btn-primary">+ Add Account</button>
+        </div>
+
+        <div id="accounts-section">
+          <h3 class="section-title">Accounts</h3>
+          <div id="accounts-list"></div>
+        </div>
+
+        <!-- Rate limits per provider -->
+        <div id="rate-limits-section">
+          <h3 class="section-title">Rate Limits &amp; Refresh</h3>
+          <div id="rate-limits-grid"></div>
+        </div>
+
+        <div id="usage-cards">
+          <div class="usage-card">
+            <div class="usage-card-label">Total Tokens (Session)</div>
+            <div class="usage-card-value" id="val-total-tokens">0</div>
+            <div class="usage-card-sub">Input + Output</div>
+          </div>
+          <div class="usage-card">
+            <div class="usage-card-label">Input Tokens</div>
+            <div class="usage-card-value" id="val-input-tokens">0</div>
+            <div class="usage-card-sub">Prompt tokens sent</div>
+          </div>
+          <div class="usage-card">
+            <div class="usage-card-label">Output Tokens</div>
+            <div class="usage-card-value" id="val-output-tokens">0</div>
+            <div class="usage-card-sub">Response tokens</div>
+          </div>
+          <div class="usage-card highlight">
+            <div class="usage-card-label">Estimated Cost</div>
+            <div class="usage-card-value" id="val-cost">$0.00</div>
+            <div class="usage-card-sub" id="cost-model-label">Session total</div>
+          </div>
+        </div>
+
+        <div id="usage-log-section">
+          <div class="section-title-row">
+            <h3 class="section-title">Message Log</h3>
+            <button id="btn-clear-usage" class="btn-ghost">Clear</button>
+          </div>
+          <table id="usage-table">
+            <thead>
+              <tr><th>#</th><th>Time</th><th>Account</th><th>Provider</th><th>Model</th><th>Input</th><th>Output</th><th>Cache</th><th>Est. Cost</th></tr>
+            </thead>
+            <tbody id="usage-table-body"></tbody>
+          </table>
+          <div id="usage-empty" class="usage-empty-state">No usage recorded yet.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NOTEBOOKS TAB -->
+    <div id="tab-notebooks" class="tab-content">
+      <div id="notebooks-layout">
+        <!-- Left sidebar: notebook list -->
+        <div id="notebooks-sidebar">
+          <div id="notebooks-sidebar-header">
+            <span class="notebooks-sidebar-title">Notebooks</span>
+            <button class="btn-icon" id="btn-new-notebook" title="New Notebook">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+          </div>
+          <div id="notebooks-list"></div>
+        </div>
+
+        <!-- Main area -->
+        <div id="notebooks-main">
+          <!-- Empty state -->
+          <div id="notebooks-empty-state">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            <h3>No notebook selected</h3>
+            <p>Create a new notebook or select one from the sidebar to get started.</p>
+            <button class="btn-primary" id="btn-new-notebook-main">New Notebook</button>
+          </div>
+
+          <!-- Notebook workspace (hidden until notebook selected) -->
+          <div id="notebook-workspace" class="hidden">
+            <div id="notebook-workspace-header">
+              <div id="notebook-title-wrap">
+                <input type="text" id="notebook-title-input" placeholder="Notebook title…" />
+              </div>
+              <div id="notebook-header-actions">
+                <button class="btn-ghost btn-sm" id="btn-notebook-export">Export</button>
+                <button class="btn-ghost btn-sm btn-danger" id="btn-notebook-delete">Delete</button>
+              </div>
+            </div>
+
+            <div id="notebook-body">
+              <!-- Sources panel -->
+              <div id="notebook-sources-panel">
+                <div class="nb-panel-header">
+                  <span>Sources</span>
+                  <span id="nb-source-count" class="nb-count-badge">0</span>
+                </div>
+
+                <div id="nb-source-add-bar">
+                  <button class="nb-add-btn active" data-type="url">🌐 URL</button>
+                  <button class="nb-add-btn" data-type="text">📄 Text</button>
+                  <button class="nb-add-btn" data-type="file">📁 File</button>
+                  <button class="nb-add-btn" data-type="youtube">🎥 YouTube</button>
+                  <button class="nb-add-btn" data-type="gdoc">📋 Google Doc</button>
+                </div>
+
+                <div id="nb-source-input-area">
+                  <div id="nb-input-url" class="nb-input-group">
+                    <input type="text" id="nb-url-input" placeholder="Paste a URL to fetch…" />
+                    <button class="btn-primary btn-sm" id="btn-nb-fetch-url">Fetch</button>
+                  </div>
+                  <div id="nb-input-text" class="nb-input-group hidden">
+                    <textarea id="nb-text-input" placeholder="Paste or type text here…" rows="4"></textarea>
+                    <button class="btn-primary btn-sm" id="btn-nb-add-text">Add Text</button>
+                  </div>
+                  <div id="nb-input-file" class="nb-input-group hidden">
+                    <label class="nb-file-drop" id="nb-file-drop">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                      <span>Drop a file or click to browse</span>
+                      <input type="file" id="nb-file-input" accept=".txt,.md,.pdf,.csv,.js,.py,.html,.css,.json" style="display:none"/>
+                    </label>
+                  </div>
+                  <div id="nb-input-youtube" class="nb-input-group hidden">
+                    <input type="text" id="nb-youtube-input" placeholder="Paste YouTube URL…" />
+                    <button class="btn-primary btn-sm" id="btn-nb-add-youtube">Add</button>
+                  </div>
+                  <div id="nb-input-gdoc" class="nb-input-group hidden">
+                    <input type="text" id="nb-gdoc-input" placeholder="Paste Google Doc URL…" />
+                    <button class="btn-primary btn-sm" id="btn-nb-add-gdoc">Add</button>
+                  </div>
+                </div>
+
+                <div id="nb-sources-list"></div>
+              </div>
+
+              <!-- Content panel -->
+              <div id="notebook-content-panel">
+                <div id="nb-content-tabs">
+                  <button class="nb-content-tab active" data-panel="chat">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    Chat
+                  </button>
+                  <button class="nb-content-tab" data-panel="studyguide">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                    Study Guide
+                  </button>
+                  <button class="nb-content-tab" data-panel="mindmap">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><circle cx="4" cy="6" r="2"/><circle cx="20" cy="6" r="2"/><circle cx="4" cy="18" r="2"/><circle cx="20" cy="18" r="2"/><line x1="6" y1="6" x2="9" y2="11"/><line x1="18" y1="6" x2="15" y2="11"/><line x1="6" y1="18" x2="9" y2="13"/><line x1="18" y1="18" x2="15" y2="13"/></svg>
+                    Mind Map
+                  </button>
+                  <button class="nb-content-tab" data-panel="audio">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+                    Audio Overview
+                  </button>
+                </div>
+
+                <!-- Chat panel -->
+                <div id="nb-panel-chat" class="nb-content-panel active">
+                  <div id="nb-chat-messages"></div>
+                  <div id="nb-chat-input-bar">
+                    <textarea id="nb-chat-input" placeholder="Ask a question about your sources…" rows="2"></textarea>
+                    <button class="btn-primary" id="btn-nb-send">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                    </button>
+                  </div>
+                  <div id="nb-chat-empty" class="nb-panel-empty">
+                    <p>Add sources then ask questions — answers are grounded in your sources with inline citations.</p>
+                  </div>
+                </div>
+
+                <!-- Study Guide panel -->
+                <div id="nb-panel-studyguide" class="nb-content-panel hidden">
+                  <div id="nb-studyguide-actions">
+                    <button class="btn-primary" id="btn-generate-studyguide">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                      Generate Study Guide
+                    </button>
+                  </div>
+                  <div id="nb-studyguide-content" class="hidden">
+                    <div class="nb-sg-section">
+                      <h4 class="nb-sg-heading">Summary</h4>
+                      <div id="nb-sg-summary"></div>
+                    </div>
+                    <div class="nb-sg-section">
+                      <h4 class="nb-sg-heading">Key Topics</h4>
+                      <div id="nb-sg-topics" class="nb-topics-grid"></div>
+                    </div>
+                    <div class="nb-sg-section">
+                      <h4 class="nb-sg-heading">Glossary</h4>
+                      <table id="nb-sg-glossary" class="nb-glossary-table"><thead><tr><th>Term</th><th>Definition</th></tr></thead><tbody></tbody></table>
+                    </div>
+                    <div class="nb-sg-section">
+                      <h4 class="nb-sg-heading">FAQs</h4>
+                      <div id="nb-sg-faqs" class="nb-faqs-list"></div>
+                    </div>
+                  </div>
+                  <div id="nb-studyguide-empty" class="nb-panel-empty">
+                    <p>Add sources and click Generate Study Guide to create a summary, key topics, glossary, and FAQs.</p>
+                  </div>
+                </div>
+
+                <!-- Mind Map panel -->
+                <div id="nb-panel-mindmap" class="nb-content-panel hidden">
+                  <div id="nb-mindmap-actions">
+                    <button class="btn-primary" id="btn-generate-mindmap">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><circle cx="4" cy="6" r="2"/><circle cx="20" cy="6" r="2"/><circle cx="4" cy="18" r="2"/><circle cx="20" cy="18" r="2"/><line x1="6" y1="6" x2="9" y2="11"/><line x1="18" y1="6" x2="15" y2="11"/><line x1="6" y1="18" x2="9" y2="13"/><line x1="18" y1="18" x2="15" y2="13"/></svg>
+                      Generate Mind Map
+                    </button>
+                  </div>
+                  <div id="nb-mindmap-svg-container"></div>
+                  <div id="nb-mindmap-empty" class="nb-panel-empty">
+                    <p>Add sources and click Generate Mind Map to visualize concepts and relationships.</p>
+                  </div>
+                </div>
+
+                <!-- Audio Overview panel -->
+                <div id="nb-panel-audio" class="nb-content-panel hidden">
+                  <div id="nb-audio-actions">
+                    <button class="btn-primary" id="btn-generate-audio">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                      Generate Audio Overview
+                    </button>
+                  </div>
+                  <div id="nb-audio-transcript"></div>
+                  <div id="nb-audio-empty" class="nb-panel-empty">
+                    <p>Add sources and click Generate Audio Overview to get a two-voice podcast-style discussion of your content.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Highlight popup menu -->
+<div id="highlight-menu" class="hidden">
+  <button class="hl-btn" id="hl-copy">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+    Copy
+  </button>
+  <div class="hl-divider"></div>
+  <button class="hl-btn" id="hl-followup">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    Add to Follow-up
+  </button>
+  <button class="hl-btn" id="hl-sources">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    Check Sources
+  </button>
+  <button class="hl-btn" id="hl-explain">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    Explain this
+  </button>
+</div>
+
+<!-- Add Account Modal -->
+<div id="modal-add-account" class="modal hidden">
+  <div class="modal-backdrop"></div>
+  <div class="modal-box">
+    <h3>Add Account</h3>
+    <p class="modal-sub">Add an API account for Anthropic, OpenAI, or Google Gemini.</p>
+
+    <label>Provider</label>
+    <div id="provider-select-row">
+      <button class="provider-btn active" data-provider="anthropic">🤖 Anthropic</button>
+      <button class="provider-btn" data-provider="openai">⚡ OpenAI</button>
+      <button class="provider-btn" data-provider="google">💎 Google</button>
+      <button class="provider-btn" data-provider="openrouter">🔀 OpenRouter</button>
+      <button class="provider-btn" data-provider="github">🐙 GitHub</button>
+    </div>
+
+    <label>Account Name</label>
+    <input type="text" id="add-account-name" placeholder="e.g. Work, Personal" />
+
+    <label>API Key</label>
+    <input type="password" id="add-account-key" placeholder="Paste your API key…" />
+
+    <label>Default Model</label>
+    <select id="add-account-model">
+      <option value="claude-opus-4">claude-opus-4</option>
+      <option value="claude-sonnet-4">claude-sonnet-4</option>
+      <option value="claude-haiku-4">claude-haiku-4</option>
+    </select>
+
+    <label>Tier <span style="color:var(--text-muted);font-weight:400">(for rate limit display)</span></label>
+    <select id="add-account-tier">
+      <option value="free">Free</option>
+      <option value="tier1" selected>Tier 1 / Build</option>
+      <option value="tier2">Tier 2</option>
+      <option value="tier3">Tier 3+</option>
+    </select>
+
+    <div class="modal-actions">
+      <button class="btn-ghost" id="btn-modal-cancel">Cancel</button>
+      <button class="btn-primary" id="btn-modal-save">Add Account</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/skill-registry.js"></script>
+<script src="js/journeykits.js"></script>
+<script src="js/notebook.js"></script>
+<script src="js/app.js" type="module"></script>
+</body>
+</html>
