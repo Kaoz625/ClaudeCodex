@@ -5,6 +5,24 @@
 
 version: 1
 
+# ── OpenRouter Free-Tier Key Pool ─────────────────────────────────────────────
+# RULE: Always use :free model suffix. No paid models without explicit instruction.
+# 3 separate accounts = 3× independent rate limits = true parallel throughput.
+openrouter:
+  rule: "free_only"
+  base_url: "https://openrouter.ai/api/v1"
+  accounts:
+    - account: "sonarai.1@proton.me"
+      key: "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"
+      models: [qwen/qwen3.6-plus:free, nvidia/nemotron-3-super-120b-a12b:free, openai/gpt-oss-120b:free, openai/gpt-oss-20b:free, google/gemma-3-27b-it:free, qwen/qwen3-coder:free]
+    - account: "sonarai.2@proton.me"
+      key: "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"
+      models: [minimax/minimax-m2.5:free, stepfun/step-3.5-flash:free, arcee-ai/trinity-large-preview:free, nvidia/nemotron-3-nano-30b-a3b:free, qwen/qwen3-next-80b-a3b-instruct:free, nvidia/nemotron-nano-9b-v2:free]
+    - account: "sonarai.3@proton.me"
+      key: "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"
+      models: [nvidia/llama-nemotron-embed-vl-1b-v2:free, liquid/lfm-2.5-1.2b-thinking:free, liquid/lfm-2.5-1.2b-instruct:free, nvidia/nemotron-nano-12b-v2-vl:free, z-ai/glm-4.5-air:free, cognitivecomputations/dolphin-mistral-24b-venice-edition:free]
+  fallback_order: [qwen/qwen3.6-plus:free, nvidia/nemotron-3-super-120b-a12b:free, openai/gpt-oss-120b:free, google/gemma-3-27b-it:free, minimax/minimax-m2.5:free, arcee-ai/trinity-large-preview:free, stepfun/step-3.5-flash:free, qwen/qwen3-next-80b-a3b-instruct:free, nvidia/nemotron-3-nano-30b-a3b:free, nvidia/nemotron-nano-9b-v2:free, qwen/qwen3-coder:free, openai/gpt-oss-20b:free]
+
 defaults:
   model: claude-opus-4
   max_turns: 40
