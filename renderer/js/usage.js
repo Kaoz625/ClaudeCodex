@@ -4,6 +4,7 @@
 const PRICING = {
   // Anthropic
   'claude-opus-4':      { input: 15.00, output: 75.00,  cacheRead: 1.50 },
+  'claude-sonnet-4-6':  { input: 3.00,  output: 15.00,  cacheRead: 0.30 },
   'claude-sonnet-4':    { input: 3.00,  output: 15.00,  cacheRead: 0.30 },
   'claude-haiku-4':     { input: 0.80,  output: 4.00,   cacheRead: 0.08 },
   // OpenAI
@@ -62,7 +63,7 @@ const RATE_LIMITS = {
 };
 
 const PROVIDER_MODELS = {
-  anthropic:  ['claude-opus-4', 'claude-sonnet-4', 'claude-haiku-4'],
+  anthropic:  ['claude-opus-4', 'claude-sonnet-4-6', 'claude-sonnet-4', 'claude-haiku-4'],
   openai:     ['gpt-4o', 'gpt-4o-mini', 'o1', 'o3-mini'],
   google:     ['gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-1.5-flash'],
   openrouter: ['openrouter/auto', 'meta-llama/llama-3.3-70b-instruct', 'mistralai/mistral-large', 'deepseek/deepseek-r1', 'qwen/qwen-2.5-72b-instruct'],
@@ -106,7 +107,7 @@ export class UsageManager {
   // ── Record usage ──
   recordUsage({ input, output, cacheRead = 0 }) {
     const account = this.getActiveAccount();
-    const model   = account?.model || 'claude-opus-4';
+    const model   = account?.model || 'claude-sonnet-4-6';
     const cost    = this.calcCost(input, output, cacheRead, model);
 
     const entry = {
@@ -136,7 +137,7 @@ export class UsageManager {
   }
 
   calcCost(input, output, cacheRead, model) {
-    const p = PRICING[model] || PRICING['claude-opus-4'];
+    const p = PRICING[model] || PRICING['claude-sonnet-4-6'];
     return (input / 1e6) * p.input + (output / 1e6) * p.output + (cacheRead / 1e6) * p.cacheRead;
   }
 
